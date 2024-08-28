@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            margin-right: 10px;
+        }
+        input[type="text"], input[type="date"], button {
+            margin-right: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #3071c7;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0049a8;
+            color: black;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .details-box {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+        .details-box p {
+            margin: 5px 0;
+        }
+        .details-box p strong {
+            display: inline-block;
+            width: 200px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Booking Website</h1>
+
+    <h2>Get All Bookings</h2>
+    <form id="getAllForm">
+        <label for="sortBy">Sort By:</label>
+        <input type="text" id="sortBy" name="sortBy" value="BookingDateFrom">
+        <label for="status">Status:</label>
+        <input type="text" id="status" name="status">
+        <button type="submit">Get All</button>
+    </form>
+    <table id="getAllResultTable">
+        <thead>
+            <tr>
+                <th>Booking ID</th>
+                <th>Facility Description</th>
+                <th>Booking Date From</th>
+                <th>Booking Date To</th>
+                <th>Booked By</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Get Booking By ID</h2>
+    <form id="getByIdForm">
+        <label for="getById">Booking ID:</label>
+        <input type="text" id="getById" name="getById">
+        <button type="submit">Get By ID</button>
+    </form>
+    <div id="getByIdResult" class="details-box"></div>
+
+    <h2>Search Bookings</h2>
+    <form id="searchForm">
+        <label for="searchQuery">Query:</label>
+        <input type="text" id="searchQuery" name="searchQuery">
+        <label for="searchFromDate">From Date:</label>
+        <input type="date" id="searchFromDate" name="searchFromDate">
+        <label for="searchToDate">To Date:</label>
+        <input type="date" id="searchToDate" name="searchToDate">
+        <button type="submit">Search</button>
+    </form>
+    <table id="searchResultTable">
+        <thead>
+            <tr>
+                <th>Booking ID</th>
+                <th>Facility Description</th>
+                <th>Booking Date From</th>
+                <th>Booking Date To</th>
+                <th>Booked By</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Create Booking</h2>
+    <form id="createForm">
+        <label for="createDescription">Facility Description:</label>
+        <input type="text" id="createDescription" name="createDescription">
+        <label for="createFromDate">From Date:</label>
+        <input type="date" id="createFromDate" name="createFromDate">
+        <label for="createToDate">To Date:</label>
+        <input type="date" id="createToDate" name="createToDate">
+        <label for="createBookedBy">Booked By:</label>
+        <input type="text" id="createBookedBy" name="createBookedBy">
+        <label for="createStatus">Status:</label>
+        <input type="text" id="createStatus" name="createStatus">
+        <button type="submit">Create</button>
+    </form>
+    <pre id="createResult"></pre>
+
+    <h2>Update Booking</h2>
+    <form id="updateForm">
+        <label for="updateId">Booking ID:</label>
+        <input type="text" id="updateId" name="updateId">
+        <label for="updateDescription">Facility Description:</label>
+        <input type="text" id="updateDescription" name="updateDescription">
+        <label for="updateFromDate">From Date:</label>
+        <input type="date" id="updateFromDate" name="updateFromDate">
+        <label for="updateToDate">To Date:</label>
+        <input type="date" id="updateToDate" name="updateToDate">
+        <label for="updateBookedBy">Booked By:</label>
+        <input type="text" id="updateBookedBy" name="updateBookedBy">
+        <label for="updateStatus">Status:</label>
+        <input type="text" id="updateStatus" name="updateStatus">
+        <button type="submit">Update</button>
+    </form>
+    <pre id="updateResult"></pre>
+
+    <h2>Delete Booking</h2>
+    <form id="deleteForm">
+        <label for="deleteId">Booking ID:</label>
+        <input type="text" id="deleteId" name="deleteId">
+        <button type="submit">Delete</button>
+    </form>
+    <pre id="deleteResult"></pre>
+
+    <script>
+        const baseUrl = 'https://localhost:7247/api/Booking';
+        const token = localStorage.getItem('token'); // Ensure correct retrieval
+
+        // Check if token exists
+        if (!token) {
+            alert('Please log in first.');
+            window.location.href = 'Login.html'; // Redirect to login if not logged in
+            throw new Error('No token found');
+        }
+
+        // Get All Bookings
+        document.getElementById('getAllForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const sortBy = document.getElementById('sortBy').value;
+            const status = document.getElementById('status').value;
+
+            try {
+                const response = await fetch(`${baseUrl}?sortBy=${sortBy}&status=${status}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                displayTableData(data, 'getAllResultTable');
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            }
+        };
+
+        // Display Table Data
+        function displayTableData(bookings, tableId) {
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            tbody.innerHTML = ''; // Clear existing rows
+            bookings.forEach(booking => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${booking.bookingId}</td>
+                    <td>${booking.facilityDescription}</td>
+                    <td>${booking.bookingDateFrom}</td>
+                    <td>${booking.bookingDateTo}</td>
+                    <td>${booking.bookedBy}</td>
+                    <td>${booking.bookingStatus}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Get Booking By ID
+        document.getElementById('getByIdForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('getById').value;
+
+            try {
+                const response = await fetch(`${baseUrl}/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                const resultDiv = document.getElementById('getByIdResult');
+                resultDiv.innerHTML = `
+                    <h3>Booking Details</h3>
+                    <p><strong>Booking ID:</strong> ${data.bookingId}</p>
+                    <p><strong>Facility Description:</strong> ${data.facilityDescription}</p>
+                    <p><strong>Booking Date From:</strong> ${data.bookingDateFrom}</p>
+                    <p><strong>Booking Date To:</strong> ${data.bookingDateTo}</p>
+                    <p><strong>Booked By:</strong> ${data.bookedBy}</p>
+                    <p><strong>Status:</strong> ${data.bookingStatus}</p>
+                `;
+            } catch (error) {
+                document.getElementById('getByIdResult').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        };
+
+        // Search Bookings
+        document.getElementById('searchForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const query = document.getElementById('searchQuery').value;
+            const fromDate = document.getElementById('searchFromDate').value;
+            const toDate = document.getElementById('searchToDate').value;
+
+            try {
+                const response = await fetch(`${baseUrl}/search?query=${query}&fromDate=${fromDate}&toDate=${toDate}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                displayTableData(data, 'searchResultTable');
+            } catch (error) {
+                console.error('Error searching bookings:', error);
+            }
+        };
+
+        // Create Booking
+        document.getElementById('createForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const booking = {
+                FacilityDescription: document.getElementById('createDescription').value,
+                BookingDateFrom: document.getElementById('createFromDate').value,
+                BookingDateTo: document.getElementById('createToDate').value,
+                BookedBy: document.getElementById('createBookedBy').value,
+                BookingStatus: document.getElementById('createStatus').value
+            };
+
+            try {
+                const response = await fetch(baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(booking)
+                });
+                const data = await response.json();
+                document.getElementById('createResult').textContent = `Booking created: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('createResult').textContent = `Error: ${error.message}`;
+            }
+        };
+
+        // Update Booking
+        document.getElementById('updateForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('updateId').value;
+            const updatedBooking = {
+                BookingId: id,
+                FacilityDescription: document.getElementById('updateDescription').value,
+                BookingDateFrom: document.getElementById('updateFromDate').value,
+                BookingDateTo: document.getElementById('updateToDate').value,
+                BookedBy: document.getElementById('updateBookedBy').value,
+                BookingStatus: document.getElementById('updateStatus').value
+            };
+
+            try {
+                const response = await fetch(`${baseUrl}/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(updatedBooking)
+                });
+                if (response.ok) {
+                    document.getElementById('updateResult').textContent = 'Booking updated successfully';
+                } else {
+                    document.getElementById('updateResult').textContent = `Error: ${response.status}`;
+                }
+            } catch (error) {
+                document.getElementById('updateResult').textContent = `Error: ${error.message}`;
+            }
+        };
+
+        // Delete Booking
+        document.getElementById('deleteForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('deleteId').value;
+
+            try {
+                const response = await fetch(`${baseUrl}/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                document.getElementById('deleteResult').textContent = response.ok ? 'Booking deleted successfully' : `Error: ${response.status}`;
+            } catch (error) {
+                document.getElementById('deleteResult').textContent = `Error: ${error.message}`;
+            }
+        };
+    </script>
+</body>
+</html>
